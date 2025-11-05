@@ -6,6 +6,9 @@ embedding-service:
 
 rag-service:
 	./rag_service.sh
+	
+gemini-service:
+	./gemini_rag_service.sh
 
 # dev
 # norag-service:
