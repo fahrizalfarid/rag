@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat Assistant</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #f7f7f8;
+            --sidebar-bg: #202123;
+            --sidebar-hover: #2a2b32;
+            --text-color: #202123;
+            --message-bg: #ffffff;
+            --user-message-bg: #f7f7f8;
+            --border-color: #e5e5e5;
+            --input-bg: #ffffff;
+            --button-bg: #10a37f;
+            --button-hover: #0d8f6f;
+            --code-bg: #f0f0f0;
+            --code-color: #333;
+            --pre-bg: #282c34;
+            --pre-color: #abb2bf;
+            --error-bg: #fee;
+            --error-color: #c00;
+            --success-bg: #efe;
+            --success-color: #0c0;
+        }
+
+        [data-theme="dark"] {
+            --bg-color: #343541;
+            --sidebar-bg: #202123;
+            --sidebar-hover: #2a2b32;
+            --text-color: #ececf1;
+            --message-bg: #444654;
+            --user-message-bg: #343541;
+            --border-color: #4e4f60;
+            --input-bg: #40414f;
+            --button-bg: #10a37f;
+            --button-hover: #0d8f6f;
+            --code-bg: #2d2d2d;
+            --code-color: #f8f8f2;
+            --pre-bg: #1e1e1e;
+            --pre-color: #d4d4d4;
+            --error-bg: #4a1f1f;
+            --error-color: #ff6b6b;
+            --success-bg: #1f4a1f;
+            --success-color: #6bff6b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 260px;
+            background-color: var(--sidebar-bg);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.3s;
+        }
+
+        .new-chat-btn {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: background-color 0.2s;
+        }
+
+        .new-chat-btn:hover {
+            background-color: var(--sidebar-hover);
+        }
+
+        .chat-history {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .chat-history-item {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .chat-history-item:hover {
+            background-color: var(--sidebar-hover);
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .theme-toggle {
+            background-color: transparent;
+            border: none;
+            color: var(--text-color);
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        .theme-toggle:hover {
+            background-color: var(--sidebar-hover);
+        }
+
+        .api-settings {
+            margin-top: 10px;
+        }
+
+        .api-settings-btn {
+            background-color: transparent;
+            border: none;
+            color: var(--text-color);
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        .api-settings-btn:hover {
+            background-color: var(--sidebar-hover);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .message {
+            display: flex;
+            gap: 16px;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .user-message {
+            background-color: var(--user-message-bg);
+        }
+
+        .assistant-message {
+            background-color: var(--message-bg);
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .user-avatar {
+            background-color: #10a37f;
+            color: white;
+        }
+
+        .assistant-avatar {
+            background-color: #ab68ff;
+            color: white;
+        }
+
+        .message-content {
+            flex-grow: 1;
+            line-height: 1.6;
+        }
+
+        .message-content p {
+            margin-bottom: 16px;
+        }
+
+        .message-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .message-content pre {
+            background-color: var(--pre-bg);
+            color: var(--pre-color);
+            padding: 16px;
+            border-radius: 6px;
+            overflow-x: auto;
+            margin-bottom: 16px;
+        }
+
+        .message-content code {
+            background-color: var(--code-bg);
+            color: var(--code-color);
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .message-content pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+
+        .typing-indicator {
+            display: inline-block;
+        }
+
+        .typing-indicator span {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--text-color);
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+                opacity: 0.7;
+            }
+            30% {
+                transform: translateY(-10px);
+                opacity: 1;
+            }
+        }
+
+        .input-container {
+            padding: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .input-wrapper {
+            display: flex;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px 16px;
+            align-items: center;
+        }
+
+        .message-input {
+            flex-grow: 1;
+            background-color: transparent;
+            border: none;
+            color: var(--text-color);
+            font-size: 16px;
+            outline: none;
+            resize: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .send-button {
+            background-color: var(--button-bg);
+            border: none;
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+        }
+
+        .send-button:hover {
+            background-color: var(--button-hover);
+        }
+
+        .send-button:disabled {
+            background-color: var(--border-color);
+            cursor: not-allowed;
+        }
+
+        .welcome-message {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .welcome-message h1 {
+            font-size: 32px;
+            margin-bottom: 16px;
+        }
+
+        .welcome-message p {
+            font-size: 18px;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .suggestion-chip {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            padding: 12px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .suggestion-chip:hover {
+            background-color: var(--sidebar-hover);
+        }
+
+        .error-message {
+            background-color: var(--error-bg);
+            color: var(--error-color);
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .success-message {
+            background-color: var(--success-bg);
+            color: var(--success-color);
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .retry-button {
+            background-color: var(--button-bg);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: auto;
+            font-size: 14px;
+        }
+
+        .retry-button:hover {
+            background-color: var(--button-hover);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background-color: var(--message-bg);
+            padding: 24px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: none;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            background-color: var(--button-bg);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--button-hover);
+        }
+
+        .btn-secondary {
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--sidebar-hover);
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .connection-status.connected {
+            background-color: var(--success-bg);
+            color: var(--success-color);
+        }
+
+        .connection-status.disconnected {
+            background-color: var(--error-bg);
+            color: var(--error-color);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .clear-history-btn {
+            background-color: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            transition: background-color 0.2s;
+            margin-top: 10px;
+        }
+
+        .clear-history-btn:hover {
+            background-color: var(--sidebar-hover);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                display: none;
+            }
+            
+            .main-content {
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <button class="new-chat-btn" id="newChatBtn">
+            <i class="fas fa-plus"></i>
+            <span>Obrolan Baru</span>
+        </button>
+        
+        <div class="connection-status" id="connectionStatus">
+            <span class="status-dot"></span>
+            <span id="connectionText">Terhubung</span>
+        </div>
+        
+        <div class="chat-history" id="chatHistory">
+            <div class="chat-history-item">Contoh percakapan 1</div>
+            <div class="chat-history-item">Contoh percakapan 2</div>
+            <div class="chat-history-item">Contoh percakapan 3</div>
+        </div>
+        
+        <div class="sidebar-footer">
+            <button class="clear-history-btn" id="clearHistoryBtn">
+                <i class="fas fa-trash"></i>
+                <span>Hapus Riwayat</span>
+            </button>
+            
+            <button class="api-settings-btn" id="apiSettingsBtn">
+                <i class="fas fa-cog"></i>
+                <span>Pengaturan API</span>
+            </button>
+            
+            <button class="theme-toggle" id="themeToggle">
+                <i class="fas fa-moon" id="themeIcon"></i>
+                <span id="themeText">Mode Gelap</span>
+            </button>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <div class="header">
+            <h2>AI Chat Assistant</h2>
+        </div>
+        
+        <div class="chat-container" id="chatContainer">
+            <div class="welcome-message" id="welcomeMessage">
+                <h1>Selamat datang di AI Chat Assistant</h1>
+                <p>Saya dapat membantu Anda dengan berbagai pertanyaan dan tugas. Silakan ajukan pertanyaan atau berikan instruksi.</p>
+                
+                <div class="suggestions">
+                    <div class="suggestion-chip">Jelaskan konsep quantum computing</div>
+                    <div class="suggestion-chip">Buat kode untuk fungsi palindrome</div>
+                    <div class="suggestion-chip">Berikan resep masakan Indonesia</div>
+                    <div class="suggestion-chip">Jelaskan teori relativitas Einstein</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="input-container">
+            <div class="input-wrapper">
+                <textarea 
+                    class="message-input" 
+                    id="messageInput" 
+                    placeholder="Ketik pesan Anda..." 
+                    rows="1"
+                ></textarea>
+                <button class="send-button" id="sendButton">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- API Settings Modal -->
+    <div class="modal" id="apiSettingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Pengaturan API</h2>
+            </div>
+            
+            <div class="form-group">
+                <label for="apiEndpoint">Endpoint API</label>
+                <input type="text" id="apiEndpoint" placeholder="http://localhost:8080/api/chat" value="http://localhost:8082/api/v1/llm/completion">
+            </div>
+            
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelSettingsBtn">Batal</button>
+                <button class="btn btn-primary" id="saveSettingsBtn">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const chatContainer = document.getElementById('chatContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
+        const newChatBtn = document.getElementById('newChatBtn');
+        const welcomeMessage = document.getElementById('welcomeMessage');
+        const chatHistoryItems = document.querySelectorAll('.chat-history-item');
+        const suggestionChips = document.querySelectorAll('.suggestion-chip');
+        const apiSettingsBtn = document.getElementById('apiSettingsBtn');
+        const apiSettingsModal = document.getElementById('apiSettingsModal');
+        const cancelSettingsBtn = document.getElementById('cancelSettingsBtn');
+        const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const connectionText = document.getElementById('connectionText');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+        
+        // API Settings Elements
+        const apiEndpointInput = document.getElementById('apiEndpoint');
+        
+        // State
+        let isTyping = false;
+        let currentTheme = localStorage.getItem('theme') || 'light';
+        let lastMessage = ''; // Menyimpan pesan terakhir untuk retry
+        let apiSettings = {
+            endpoint: localStorage.getItem('apiEndpoint') || 'http://localhost:8082/api/v1/llm/completion'
+        };
+        let isConnected = false;
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        // Initialize theme
+        if (currentTheme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            themeIcon.className = 'fas fa-sun';
+            themeText.textContent = 'Mode Terang';
+        }
+        
+        // Load API settings
+        loadApiSettings();
+        
+        // Test API connection on load
+        // testApiConnection();
+        
+        // Event Listeners
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keydown', handleKeyDown);
+        themeToggle.addEventListener('click', toggleTheme);
+        newChatBtn.addEventListener('click', startNewChat);
+        apiSettingsBtn.addEventListener('click', openApiSettings);
+        cancelSettingsBtn.addEventListener('click', closeApiSettings);
+        saveSettingsBtn.addEventListener('click', saveApiSettings);
+        clearHistoryBtn.addEventListener('click', clearHistory);
+        
+        // Add event listeners to suggestion chips
+        suggestionChips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                messageInput.value = chip.textContent;
+                sendMessage();
+            });
+        });
+        
+        // Add event listeners to chat history items
+        chatHistoryItems.forEach(item => {
+            item.addEventListener('click', () => {
+                // In a real app, this would load the selected chat
+                alert(`Memuat: ${item.textContent}`);
+            });
+        });
+        
+        // Auto-resize textarea
+        messageInput.addEventListener('input', () => {
+            messageInput.style.height = 'auto';
+            messageInput.style.height = Math.min(messageInput.scrollHeight, 200) + 'px';
+        });
+        
+        // Functions
+        function handleKeyDown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        }
+        
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message || isTyping) return;
+            
+            // Hide welcome message if it's visible
+            if (welcomeMessage.style.display !== 'none') {
+                welcomeMessage.style.display = 'none';
+            }
+            
+            // Simpan pesan terakhir untuk retry
+            lastMessage = message;
+            
+            // Add user message to UI
+            addMessage('user', message);
+            
+            // Clear input
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            
+            // Disable send button
+            isTyping = true;
+            sendButton.disabled = true;
+            
+            // Make API request dengan pesan yang baru saja dikirim
+            makeApiRequest(message);
+        }
+        
+        function addMessage(role, content, isError = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}-message`;
+            
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = `message-avatar ${role}-avatar`;
+            avatarDiv.innerHTML = role === 'user' ? '<i class="fas fa-user"></i>' : '<i class="fas fa-robot"></i>';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            if (role === 'assistant' && content === 'typing') {
+                contentDiv.innerHTML = '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+            } else if (isError) {
+                contentDiv.innerHTML = `
+                    <div class="error-message">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <span>${content}</span>
+                        <button class="retry-button" onclick="retryLastRequest()">Coba Lagi</button>
+                    </div>
+                `;
+            } else {
+                contentDiv.innerHTML = `<p>${content}</p>`;
+            }
+            
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            return messageDiv;
+        }
+        
+        async function makeApiRequest(message) {
+            // Add typing indicator
+            const typingMessage = addMessage('assistant', 'typing');
+            
+            try {
+                // Prepare request body dengan pesan yang baru saja user kirim
+                const requestBody = {
+                    content: [message], // Langsung kirim pesan yang diterima
+                };
+                
+                // Prepare headers
+                const headers = {
+                    'Content-Type': 'application/json'
+                };
+                
+                console.log('Sending request:', requestBody); // Debug log
+                
+                const response = await fetch(apiSettings.endpoint, {
+                    method: 'POST',
+                    headers: headers,
+                    body: JSON.stringify(requestBody)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Received response:', data); // Debug log
+                
+                // Extract content from response dengan format yang benar
+                let assistantResponse = '';
+                if (data.status === 'Success' && data.data && data.data.content) {
+                    // Join array of strings into a single response
+                    assistantResponse = data.data.content.join('\n\n');
+                } else {
+                    // Tampilkan error detail untuk debugging
+                    console.error('Invalid response format:', data);
+                    throw new Error(`Invalid response format. Status: ${data.status}, Data: ${JSON.stringify(data)}`);
+                }
+                
+                // Remove typing indicator
+                chatContainer.removeChild(typingMessage);
+                
+                // Add assistant message with typing animation
+                addTypingMessage(assistantResponse);
+                
+                // Reset retry count
+                retryCount = 0;
+                
+            } catch (error) {
+                console.error('API Error:', error);
+                
+                // Remove typing indicator
+                chatContainer.removeChild(typingMessage);
+                
+                // Show error message
+                addMessage('assistant', `Gagal terhubung ke server: ${error.message}`, true);
+                
+                // Update connection status
+                updateConnectionStatus(false);
+            } finally {
+                // Re-enable send button
+                isTyping = false;
+                sendButton.disabled = false;
+            }
+        }
+        
+        function retryLastRequest() {
+            if (retryCount < maxRetries && lastMessage) {
+                retryCount++;
+                makeApiRequest(lastMessage);
+            } else {
+                addMessage('assistant', 'Maksimal percobaan ulang telah tercapai. Silakan periksa pengaturan API Anda.', true);
+            }
+        }
+        
+        async function testApiConnection() {
+            try {
+                const response = await fetch(apiSettings.endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: ['test']
+                    })
+                });
+                
+                updateConnectionStatus(response.ok);
+            } catch (error) {
+                updateConnectionStatus(false);
+            }
+        }
+        
+        function updateConnectionStatus(connected) {
+            isConnected = connected;
+            if (connected) {
+                connectionStatus.className = 'connection-status connected';
+                connectionText.textContent = 'Terhubung';
+            } else {
+                connectionStatus.className = 'connection-status disconnected';
+                connectionText.textContent = 'Terputus';
+            }
+        }
+        
+        function addTypingMessage(content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message assistant-message';
+            
+            const avatarDiv = document.createElement('div');
+            avatarDiv.className = 'message-avatar assistant-avatar';
+            avatarDiv.innerHTML = '<i class="fas fa-robot"></i>';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            
+            messageDiv.appendChild(avatarDiv);
+            messageDiv.appendChild(contentDiv);
+            chatContainer.appendChild(messageDiv);
+            
+            // Simulate typing effect
+            let index = 0;
+            let currentParagraph = '';
+            let paragraphs = [];
+            let currentCharIndex = 0;
+            
+            // Split content into paragraphs
+            const contentParts = content.split('\n\n');
+            
+            function typeNextChar() {
+                if (index >= contentParts.length) {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                    return;
+                }
+                
+                const paragraph = contentParts[index];
+                
+                if (currentCharIndex === 0) {
+                    // Create new paragraph
+                    const p = document.createElement('p');
+                    contentDiv.appendChild(p);
+                    currentParagraph = p;
+                    paragraphs.push(p);
+                }
+                
+                if (currentCharIndex < paragraph.length) {
+                    // Handle code blocks
+                    if (paragraph.substring(currentCharIndex).startsWith('```')) {
+                        const codeBlockEnd = paragraph.indexOf('```', currentCharIndex + 3);
+                        if (codeBlockEnd !== -1) {
+                            const codeContent = paragraph.substring(currentCharIndex + 3, codeBlockEnd);
+                            const pre = document.createElement('pre');
+                            const code = document.createElement('code');
+                            code.textContent = codeContent;
+                            pre.appendChild(code);
+                            contentDiv.appendChild(pre);
+                            currentCharIndex = codeBlockEnd + 3;
+                            paragraphs.push(pre);
+                        } else {
+                            currentParagraph.textContent += paragraph[currentCharIndex];
+                            currentCharIndex++;
+                        }
+                    } else if (paragraph.substring(currentCharIndex).startsWith('`')) {
+                        const inlineCodeEnd = paragraph.indexOf('`', currentCharIndex + 1);
+                        if (inlineCodeEnd !== -1) {
+                            const codeContent = paragraph.substring(currentCharIndex + 1, inlineCodeEnd);
+                            const code = document.createElement('code');
+                            code.textContent = codeContent;
+                            currentParagraph.appendChild(code);
+                            currentCharIndex = inlineCodeEnd + 1;
+                        } else {
+                            currentParagraph.textContent += paragraph[currentCharIndex];
+                            currentCharIndex++;
+                        }
+                    } else {
+                        currentParagraph.textContent += paragraph[currentCharIndex];
+                        currentCharIndex++;
+                    }
+                    
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                    setTimeout(typeNextChar, 20);
+                } else {
+                    // Move to next paragraph
+                    index++;
+                    currentCharIndex = 0;
+                    setTimeout(typeNextChar, 300);
+                }
+            }
+            
+            typeNextChar();
+        }
+        
+        function toggleTheme() {
+            if (currentTheme === 'light') {
+                currentTheme = 'dark';
+                document.documentElement.setAttribute('data-theme', 'dark');
+                themeIcon.className = 'fas fa-sun';
+                themeText.textContent = 'Mode Terang';
+            } else {
+                currentTheme = 'light';
+                document.documentElement.removeAttribute('data-theme');
+                themeIcon.className = 'fas fa-moon';
+                themeText.textContent = 'Mode Gelap';
+            }
+            
+            localStorage.setItem('theme', currentTheme);
+        }
+        
+        function startNewChat() {
+            // Clear chat container
+            chatContainer.innerHTML = '';
+            
+            // Show welcome message
+            welcomeMessage.style.display = 'block';
+            
+            // Clear input
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+            
+            // Reset typing state
+            isTyping = false;
+            sendButton.disabled = false;
+            
+            // Clear last message
+            lastMessage = '';
+        }
+        
+        function clearHistory() {
+            if (confirm('Apakah Anda yakin ingin menghapus riwayat percakapan?')) {
+                startNewChat();
+            }
+        }
+        
+        function openApiSettings() {
+            apiSettingsModal.classList.add('active');
+        }
+        
+        function closeApiSettings() {
+            apiSettingsModal.classList.remove('active');
+        }
+        
+        function loadApiSettings() {
+            apiEndpointInput.value = apiSettings.endpoint;
+        }
+        
+        function saveApiSettings() {
+            apiSettings = {
+                endpoint: apiEndpointInput.value
+            };
+            
+            // Save to localStorage
+            localStorage.setItem('apiEndpoint', apiSettings.endpoint);
+            
+            // Close modal
+            closeApiSettings();
+            
+            // Test connection
+            // testApiConnection();
+            
+            // Show success message
+            addMessage('system', 'Pengaturan API berhasil disimpan!');
+        }
+        
+        // Close modal when clicking outside
+        apiSettingsModal.addEventListener('click', (e) => {
+            if (e.target === apiSettingsModal) {
+                closeApiSettings();
+            }
+        });
+    </script>
+</body>
+</html>
