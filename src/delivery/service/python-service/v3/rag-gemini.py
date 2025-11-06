@@ -8,7 +8,7 @@ async def main():
         nc = await nats.connect("nats://127.0.0.1:4222")
         llm = LLM(
             dbpath="/path/code/src/delivery/service/python-service/v3/milvus_law_qa.db",
-            dfpath="/path/test-ifabula/code/src/delivery/service/python-service/v3/law_qa_1000_raw.csv",
+            dfpath="/path/code/src/delivery/service/python-service/v3/law_qa_1000_raw.csv",
         )
         
         async def message_handler(msg):

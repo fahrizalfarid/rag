@@ -14,7 +14,7 @@ class LLM():
         self.dbpath = dbpath
         self.dfpath = dfpath
         self.collection_name = collection_name
-        self.client = genai.Client(api_key="your_key")
+        self.client = genai.Client(api_key="AIzaSyA3AYRx3L8bdkYDkF3dAb_0_13zyfNbxhE")
 
         self._load_from_db()
 
@@ -28,14 +28,18 @@ class LLM():
         except FileNotFoundError:
             self.collection = None
     
-    def _get_context_from_df(self, query, source_ids):
+
+    def _get_context_from_df(self, query, contexts, source_ids):
         # get context from id
-        context = self.df.loc[self.df['id'] == source_ids[0], 'context'].values[0].split(".")[:2]
+        print(source_ids)
+        paragraph = self.df.loc[self.df['id'] == source_ids[0], 'context'].values[0].split(".")[:2]
 
         prompt = f"""Berdasarkan konteks berikut, jawab pertanyaan di bawah ini dengan jelas dan ringkas.
                 Jika jawaban tidak ada dalam konteks, katakan "Saya tidak menemukan informasi tersebut dalam konteks."
 
-                Konteks: {"\n".join(context)}
+                Konteks dari vektor database : {"\n".join(contexts)}
+
+                Konteks dari database : {"\n".join(paragraph)}
 
                 Pertanyaan: {query}
 
@@ -69,10 +73,11 @@ class LLM():
                 ids.append(id)
 
 
-            prompt = self._get_context_from_df(query=query, source_ids=ids)
-            response = self._retrieve_from_gemini(prompt=prompt)
+            prompt = self._get_context_from_df(query=query, contexts=contexts, source_ids=ids)
             print(prompt)
+            response = self._retrieve_from_gemini(prompt=prompt)
             print(response)
             return response
         else:
             return "database was not respond."
+
