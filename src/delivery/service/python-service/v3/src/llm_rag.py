@@ -14,7 +14,7 @@ class LLM():
         self.dbpath = dbpath
         self.dfpath = dfpath
         self.collection_name = collection_name
-        self.client = genai.Client(api_key="AIzaSyA3AYRx3L8bdkYDkF3dAb_0_13zyfNbxhE")
+        self.client = genai.Client(api_key="your_key")
 
         self._load_from_db()
 
